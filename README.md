@@ -13,3 +13,15 @@ pip install -r requirements.txt
 ```sh
 python manage.py runserver
 ```
+
+## Crear SuperAdministrador
+
+```sh
+python manage.py createsuperuser
+```
+
+## Cargar datos iniciales de Inventario
+
+```sh
+python manage.py loaddata dump_inventario.json
+```
