@@ -4,6 +4,8 @@
 
 - Se recomienda utilizar un entorno virtual (virtualenv)
 
+Instalacion de dependencias:
+
 ```sh
 pip install -r requirements.txt
 ```
