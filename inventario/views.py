@@ -6,9 +6,18 @@ from .models import Categoria, Producto
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from .serializers import CategoriaSerializer, ProductoSerializer, ReporteProductoSerializer, ContactSerializer
 
+from rest_framework.permissions import IsAuthenticated
+
+from .permissions import IsUserAlmacen
+
+from .utils import permission_required
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 def index(request):
     return HttpResponse("Hola mundo")
@@ -56,6 +65,7 @@ def productoFormView(request):
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    permission_classes = [IsAuthenticated]
 
 class CategoriaCreateView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Categoria.objects.all()
@@ -80,15 +90,19 @@ def producto_en_unidades(request):
 
 
 @api_view(['GET'])
+@permission_required(["inventario.reporte_cantidad"])
+# @permission_classes([IsUserAlmacen])
 def reporte_productos(request):
     try:
         cantidad = Producto.objects.count()
         productos = Producto.objects.filter(unidades="u")
+        logger.info(f"Reporte de productos {cantidad}")
         return JsonResponse(ReporteProductoSerializer({
             "cantidad": cantidad,
             "productos": productos
         }).data, safe=False, status=200)
     except Exception as e:
+        logger.error("Se produjo un error")
         return JsonResponse({"message": str(e)}, status=400)
 
 @api_view(['POST'])
