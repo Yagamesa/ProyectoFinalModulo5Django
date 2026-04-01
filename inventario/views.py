@@ -1,23 +1,30 @@
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .forms import ProductoForm
-
-from .models import Categoria, Producto
-from django.shortcuts import get_object_or_404
+from .models import Categoria, Producto, Proveedor, Movimiento
 
 from rest_framework import viewsets, generics
-from rest_framework.decorators import api_view, permission_classes
-from .serializers import CategoriaSerializer, ProductoSerializer, ReporteProductoSerializer, ContactSerializer
-
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
+from .serializers import (
+    CategoriaSerializer,
+    ProductoSerializer,
+    ReporteProductoSerializer,
+    ContactSerializer,
+    ProveedorSerializer,
+    MovimientoSerializer
+)
 
 from .permissions import IsUserAlmacen
-
 from .utils import permission_required
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+# ============================
+# Views normales
+# ============================
 
 def index(request):
     return HttpResponse("Hola mundo")
@@ -58,18 +65,40 @@ def productoFormView(request):
         form.save()
 
     return render(request, 'form_productos.html', {
-        "form":form
+        "form": form
     })
 
+# ============================
+# ModelViewSets y GenericAPIView
+# ============================
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     permission_classes = [IsAuthenticated]
 
+class ProductoViewSet(viewsets.ModelViewSet):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+    permission_classes = [IsAuthenticated]
+
+class ProveedorViewSet(viewsets.ModelViewSet):
+    queryset = Proveedor.objects.all()
+    serializer_class = ProveedorSerializer
+    permission_classes = [IsAuthenticated]
+
+class MovimientoViewSet(viewsets.ModelViewSet):
+    queryset = Movimiento.objects.all()
+    serializer_class = MovimientoSerializer
+    permission_classes = [IsAuthenticated]
+
 class CategoriaCreateView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+
+# ============================
+# Custom APIs
+# ============================
 
 @api_view(['GET'])
 def categoria_count(request):
@@ -79,7 +108,6 @@ def categoria_count(request):
     except Exception as e:
         return JsonResponse({"message": str(e)}, status=400)
 
-
 @api_view(['GET'])
 def producto_en_unidades(request):
     try:
@@ -88,10 +116,8 @@ def producto_en_unidades(request):
     except Exception as e:
         return JsonResponse({"message": str(e)}, status=400)
 
-
 @api_view(['GET'])
 @permission_required(["inventario.reporte_cantidad"])
-# @permission_classes([IsUserAlmacen])
 def reporte_productos(request):
     try:
         cantidad = Producto.objects.count()
@@ -113,3 +139,14 @@ def enviar_mensaje(request):
     else:
         return JsonResponse({"message": cs.errors}, status=400)
 
+# ============================
+# Nueva Custom API: productos disponibles
+# ============================
+
+@api_view(['GET'])
+def productos_disponibles(request):
+    """
+    Devuelve todos los productos disponibles (disponible=True)
+    """
+    productos = Producto.objects.filter(disponible=True)
+    return JsonResponse(ProductoSerializer(productos, many=True).data, safe=False, status=200)

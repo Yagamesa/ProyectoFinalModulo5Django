@@ -1,25 +1,25 @@
 from django.urls import path, include
-
+from rest_framework.routers import DefaultRouter
 from . import views
 
-# from rest_framework.routers import DefaultRouter
-#
-# router = DefaultRouter()
-# router.register(r'categorias', views.CategoriaViewSet)
+# Router para los ViewSets de DRF
+router = DefaultRouter()
+router.register(r'categorias', views.CategoriaViewSet, basename='categorias')
+router.register(r'productos', views.ProductoViewSet, basename='productos')
+router.register(r'proveedores', views.ProveedorViewSet, basename='proveedores')
 
 urlpatterns = [
-    # path('contact/<str:name>', views.contact),
-    # path('categorias', views.categorias, name="categorias"),
-    # path('productos', views.productoFormView),
-    # path(
-    #     'clase8',  views.index
-    # )
-    # path('', include(router.urls)),
-    # path('categoria', views.CategoriaViewSet.as_view({'get': 'list', 'post': 'create'})),
-    # path('categoria/<int:pk>', views.CategoriaViewSet.as_view({'get': 'retrieve'})),
-    path('categorias/cantidad', views.categoria_count),
-    path('productos/filtrar/unidades', views.producto_en_unidades),
-    path('reporte/productos', views.reporte_productos),
-    # path('enviar/mensaje', views.enviar_mensaje),
-]
+    # Endpoints DRF automáticos
+    path('', include(router.urls)),
 
+    # Custom APIs
+    path('categorias/cantidad/', views.categoria_count, name='categoria_count'),
+    path('productos/filtrar/unidades/', views.producto_en_unidades, name='producto_en_unidades'),
+    path('reporte/productos/', views.reporte_productos, name='reporte_productos'),
+
+    # Opcionales: vistas tradicionales con HTML
+    path('contact/<str:name>/', views.contact, name='contact'),
+    path('categorias/form/', views.categorias, name='categorias_form'),
+    path('productos/form/', views.productoFormView, name='producto_form'),
+    path('', views.index, name='index'),
+]

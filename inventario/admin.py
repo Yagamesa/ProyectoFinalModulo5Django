@@ -1,6 +1,5 @@
 from django.contrib import admin
-
-from .models import Categoria, Producto
+from .models import Categoria, Producto, Proveedor, Movimiento
 
 admin.site.register(Categoria)
 
@@ -11,4 +10,10 @@ class ProductoAdmin(admin.ModelAdmin):
     search_fields = ('nombre',)
     list_filter = ('unidades',)
 
+
 admin.site.register(Producto, ProductoAdmin)
+
+
+# NUEVOS MODELOS
+admin.site.register(Proveedor)
+admin.site.register(Movimiento)
